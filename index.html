@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>ESP32 Button Counter</title>
+</head>
+<body>
+
+  <h1>ESP32 Button Counter</h1>
+
+  <p>Button A: <span id="countA">0</span></p>
+  <p>Button B: <span id="countB">0</span></p>
+  <p id="status">Waiting for data…</p>
+
+<script type="module">
+  // Import Firebase from CDN
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
+
+  // Firebase configuration (your project)
+  const firebaseConfig = {
+    apiKey: "AIzaSyDOhSiZJFB_MA968ungP3ibT4deiVvkVLg",
+    authDomain: "push-my-buttons.firebaseapp.com",
+    databaseURL: "https://push-my-buttons-default-rtdb.firebaseio.com",
+    projectId: "push-my-buttons",
+    storageBucket: "push-my-buttons.firebasestorage.app",
+    messagingSenderId: "181485198840",
+    appId: "1:181485198840:web:bf557318a930eeddce0a0d"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  console.log("Firebase initialized");
+
+  // Get references to HTML elements
+  const countAEl = document.getElementById("countA");
+  const countBEl = document.getElementById("countB");
+  const statusEl = document.getElementById("status");
+
+  // Reference to /counts in the database
+  const countsRef = ref(db, "counts");
+
+  // Listen for live updates
+  onValue(countsRef, (snapshot) => {
+    const data = snapshot.val();
+
+    if (!data) {
+      statusEl.textContent = "No data found in Firebase";
+      return;
+    }
+
+    // THESE LINES UPDATE THE NUMBERS ON THE PAGE
+    countAEl.textContent = data.a;
+    countBEl.textContent = data.b;
+
+    statusEl.textContent = "Last update: " + new Date().toLocaleTimeString();
+  });
+</script>
+
+
+
+  
+</body>
+</html>
