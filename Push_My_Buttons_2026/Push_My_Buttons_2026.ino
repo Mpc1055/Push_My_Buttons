@@ -10,8 +10,11 @@
 
 
 // -------------------- Wi-Fi settings --------------------
-const char* ssid     = "MpcS21";
-const char* password = "tmec321$";
+// const char* ssid     = "MpcS21";
+// const char* password = "tmec321$";
+
+const char* ssid     = "tuiot";
+const char* password = "bruc3l0w3";
 
 // -------------------- Firebase settings --------------------
 const char* firebaseHost = "https://push-my-buttons-default-rtdb.firebaseio.com";
@@ -106,6 +109,7 @@ void setup() {
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
 
+  //Check for if WiFI is cvonneceted
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     digitalWrite(statBlue, LOW);
@@ -115,6 +119,7 @@ void setup() {
     digitalWrite(statRed, LOW);
   }
 
+  //Show wifi is connected
   digitalWrite(statRed, LOW);
   digitalWrite(statBlue, HIGH);
 
