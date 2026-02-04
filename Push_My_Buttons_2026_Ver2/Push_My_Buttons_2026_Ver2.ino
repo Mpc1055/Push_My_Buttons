@@ -9,6 +9,8 @@
 
 #include "PMB_26_Ver2.h"
 
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
 
 
 // Actual definitions of globals (only here!)
@@ -36,9 +38,17 @@ unsigned long lastPressA = 0;
 unsigned long lastPressB = 0;
 
 void setup() {
+
   Serial.begin(115200);
-   Wire.begin(21, 22);
+  Wire.begin(SDA_PIN , SCL_PIN);
   delay(1000);
+
+    // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
+  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for(;;); // Don't proceed, loop forever
+  }
+  display.clearDisplay();
 
 
   // Setup buttons — these should almost certainly be INPUTs
@@ -62,7 +72,14 @@ void setup() {
 
   Status_RGB('r');
 
+
+
+
+
+
+
   // Connect to Wi-Fi
+         
   Serial.println();
   Serial.println("Connecting to WiFi...");
   Serial.print("SSID: ");
@@ -80,7 +97,23 @@ void setup() {
     Status_RGB('o');
   }
 
+
   // Show WiFi is connected
+    int rssi = WiFi.RSSI();
+    int bars = wifiBarsFromRSSI(rssi);
+    drawWifiIcon(iconX, iconY, bars);
+
+
+  display.setTextSize(1);              // 1 = small, 2 = bigger, etc.
+  display.setTextColor(SSD1306_WHITE); // White text
+  display.setCursor(iconX + 18, iconY -8);   
+  display.print(WiFi.localIP());
+
+  display.display();
+
+
+
+
   Status_RGB('b');
   Serial.println();
   Serial.println("WiFi connected!");
@@ -95,6 +128,21 @@ void setup() {
 }
 
 void loop() {
+// Draw WiFi icon
+  if (WiFi.status() == WL_CONNECTED) {
+
+    int rssi = WiFi.RSSI();
+    int bars = wifiBarsFromRSSI(rssi);
+    drawWifiIcon(iconX, iconY, bars);
+  }
+
+  display.display();
+
+
+
+
+
+
   int currentA = digitalRead(buttonAPin);
   int currentB = digitalRead(buttonBPin);
   unsigned long now = millis();

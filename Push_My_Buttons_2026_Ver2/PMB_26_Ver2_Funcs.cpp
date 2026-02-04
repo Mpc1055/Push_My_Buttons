@@ -185,4 +185,30 @@ void B_RGB(char led) {
   }
 }
 
+int wifiBarsFromRSSI(int rssi) {
+  if (rssi <= -90) return 0;
+  if (rssi <= -80) return 1;
+  if (rssi <= -70) return 2;
+  if (rssi <= -60) return 3;
+  return 4;
+}
+
+// Draw a phone-style WiFi/signal icon
+void drawWifiIcon(int x, int y, int bars) {
+  const int barWidth  = 3;
+  const int barSpace  = 1;
+  const int maxHeight = 10;
+
+  for (int i = 0; i < 4; i++) {
+    int barX = x + i * (barWidth + barSpace);
+    int barHeight = maxHeight * (i + 1) / 4;
+    int barY = y - barHeight;
+
+    if (i < bars) {
+      display.fillRect(barX, barY, barWidth, barHeight, SSD1306_WHITE);
+    } else {
+      display.drawRect(barX, barY, barWidth, barHeight, SSD1306_WHITE);
+    }
+  }
+}
 

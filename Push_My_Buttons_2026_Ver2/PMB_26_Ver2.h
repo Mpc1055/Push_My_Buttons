@@ -7,6 +7,11 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
+#define SDA_PIN 32
+#define SCL_PIN 33
+
+#define iconX 2
+#define iconY 14
 
 
 // Status LED pins
@@ -55,7 +60,11 @@ void B_RGB(char led);
 void loadCountsFromFirebase();
 void sendCountsToFirebase(unsigned long a, unsigned long b);
 
+extern Adafruit_SSD1306 display;
+
 int wifiBarsFromRSSI(int rssi);
 void drawWifiIcon(int x, int y, int bars);
+
+
 
 #endif

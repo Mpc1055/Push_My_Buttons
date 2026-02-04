@@ -10,57 +10,76 @@
 
   <p>Button A: <span id="countA">0</span></p>
   <p>Button B: <span id="countB">0</span></p>
-  <p id="status">Waiting for data…</p>
+  <p id="status">Waiting for data...</p>
 
-<script type="module">
-  // Import Firebase from CDN
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
+  <script type="module">
+    // Import Firebase from CDN
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
 
-  // Firebase configuration (your project)
-  const firebaseConfig = {
-    apiKey: "AIzaSyDOhSiZJFB_MA968ungP3ibT4deiVvkVLg",
-    authDomain: "push-my-buttons.firebaseapp.com",
-    databaseURL: "https://push-my-buttons-default-rtdb.firebaseio.com",
-    projectId: "push-my-buttons",
-    storageBucket: "push-my-buttons.firebasestorage.app",
-    messagingSenderId: "181485198840",
-    appId: "1:181485198840:web:bf557318a930eeddce0a0d"
-  };
+    // Firebase configuration (your project)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDOhSiZJFB_MA968ungP3ibT4deiVvkVLg",
+      authDomain: "push-my-buttons.firebaseapp.com",
+      databaseURL: "https://push-my-buttons-default-rtdb.firebaseio.com",
+      projectId: "push-my-buttons",
+      storageBucket: "push-my-buttons.firebasestorage.app",
+      messagingSenderId: "181485198840",
+      appId: "1:181485198840:web:bf557318a930eeddce0a0d"
+    };
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-  console.log("Firebase initialized");
+    console.log("Firebase initialized (index.html)");
 
-  // Get references to HTML elements
-  const countAEl = document.getElementById("countA");
-  const countBEl = document.getElementById("countB");
-  const statusEl = document.getElementById("status");
+    // Grab DOM elements (these MUST exist above in the HTML)
+    const countAEl = document.getElementById("countA");
+    const countBEl = document.getElementById("countB");
+    const statusEl = document.getElementById("status");
 
-  // Reference to /counts in the database
-  const countsRef = ref(db, "counts");
-
-  // Listen for live updates
-  onValue(countsRef, (snapshot) => {
-    const data = snapshot.val();
-
-    if (!data) {
-      statusEl.textContent = "No data found in Firebase";
-      return;
+    if (!countAEl || !countBEl || !statusEl) {
+      console.error("DOM elements not found: ",
+        "countAEl:", countAEl,
+        "countBEl:", countBEl,
+        "statusEl:", statusEl
+      );
+    } else {
+      statusEl.textContent = "Listening for data...";
     }
 
-    // THESE LINES UPDATE THE NUMBERS ON THE PAGE
-    countAEl.textContent = data.a;
-    countBEl.textContent = data.b;
+    // Reference to /counts in the database
+    const countsRef = ref(db, "counts");
 
-    statusEl.textContent = "Last update: " + new Date().toLocaleTimeString();
-  });
-</script>
+    // Listen for live updates
+    onValue(
+      countsRef,
+      (snapshot) => {
+        const data = snapshot.val();
+        console.log("Firebase /counts snapshot:", data);
 
+        if (!data) {
+          if (statusEl) statusEl.textContent = "No data found in Firebase";
+          if (countAEl) countAEl.textContent = "0";
+          if (countBEl) countBEl.textContent = "0";
+          return;
+        }
 
+        // Safely update the numbers on the page
+        if (countAEl) countAEl.textContent = data.a ?? 0;
+        if (countBEl) countBEl.textContent = data.b ?? 0;
+        if (statusEl) {
+          statusEl.textContent =
+            "Last update: " + new Date().toLocaleTimeString();
+        }
+      },
+      (error) => {
+        console.error("Firebase read error:", error);
+        if (statusEl) statusEl.textContent = "Error reading Firebase";
+      }
+    );
+  </script>
 
-  
 </body>
 </html>

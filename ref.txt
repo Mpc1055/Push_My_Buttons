@@ -1,0 +1,2 @@
+Deploy Firebaseupdate
+firebase deploy --only hosting
