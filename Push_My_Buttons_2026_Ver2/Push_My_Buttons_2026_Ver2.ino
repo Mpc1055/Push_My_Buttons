@@ -17,8 +17,14 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 unsigned long countA = 0;
 unsigned long countB = 0;
 
-const char* ssid = "tuiot";
-const char* password = "bruc3l0w3";
+// const char* ssid = "MpcS21";
+// const char* password = "tmec321$";
+
+// const char* ssid = "tuiot";
+// const char* password = "bruc3l0w3";
+
+const char* ssid = "Vandaley Industries";
+const char* password = "15Tattergrace48";
 
 // -------------------- Firebase settings --------------------
 const char* firebaseHost = "https://push-my-buttons-default-rtdb.firebaseio.com";
@@ -38,6 +44,7 @@ unsigned long lastPressA = 0;
 unsigned long lastPressB = 0;
 
 void setup() {
+  
 
   Serial.begin(115200);
   Wire.begin(SDA_PIN , SCL_PIN);
@@ -48,8 +55,7 @@ void setup() {
     Serial.println(F("SSD1306 allocation failed"));
     for(;;); // Don't proceed, loop forever
   }
-  display.clearDisplay();
-
+  OpenSplash();
 
   // Setup buttons — these should almost certainly be INPUTs
   pinMode(buttonAPin, INPUT_PULLUP);
@@ -72,44 +78,41 @@ void setup() {
 
   Status_RGB('r');
 
-
-
-
-
-
-
   // Connect to Wi-Fi
-         
+  display.clearDisplay();
+  display.setTextSize(2);              // 1 = small, 2 = bigger, etc.
+  display.setTextColor(SSD1306_WHITE);
+  
+  display.setCursor(0, 0);  display.print("Connecting");
+  display.setCursor(0, 16);  display.print(ssid);
+  display.display();
+
   Serial.println();
   Serial.println("Connecting to WiFi...");
   Serial.print("SSID: ");
-  Serial.println(ssid);
-
+  Serial.print(ssid);
+  
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
 
+  
   // Check if WiFi is connected
+  //display.setCursor(0, 24);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Status_RGB('r');
+    display.print(".");
     Serial.print(".");
     delay(100);
     Status_RGB('o');
+    display.display();
   }
-
-
-  // Show WiFi is connected
-    int rssi = WiFi.RSSI();
-    int bars = wifiBarsFromRSSI(rssi);
-    drawWifiIcon(iconX, iconY, bars);
-
-
-  display.setTextSize(1);              // 1 = small, 2 = bigger, etc.
-  display.setTextColor(SSD1306_WHITE); // White text
-  display.setCursor(iconX + 18, iconY -8);   
-  display.print(WiFi.localIP());
-
+display.clearDisplay();
+  display.drawBitmap(0, 16, tee_blk_bitmap_128x48, 128, 48, SSD1306_WHITE);
   display.display();
+  // // Show WiFi is connected
+  
+  drawStatusBar();
 
 
 
@@ -128,15 +131,18 @@ void setup() {
 }
 
 void loop() {
+
+
+  drawStatusBar();
 // Draw WiFi icon
-  if (WiFi.status() == WL_CONNECTED) {
+  // if (WiFi.status() == WL_CONNECTED) {
 
-    int rssi = WiFi.RSSI();
-    int bars = wifiBarsFromRSSI(rssi);
-    drawWifiIcon(iconX, iconY, bars);
-  }
+  //   int rssi = WiFi.RSSI();
+  //   int bars = wifiBarsFromRSSI(rssi);
+  //   drawWifiIcon(iconX, iconY, bars);
+  // }
 
-  display.display();
+  // display.display();
 
 
 

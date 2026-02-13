@@ -176,7 +176,7 @@ void B_RGB(char led) {
       digitalWrite(bBlue, HIGH);
       digitalWrite(bGreen, LOW);
       break;
-    
+
     case 'o':
       digitalWrite(aRed, LOW);
       digitalWrite(aBlue, LOW);
@@ -195,20 +195,54 @@ int wifiBarsFromRSSI(int rssi) {
 
 // Draw a phone-style WiFi/signal icon
 void drawWifiIcon(int x, int y, int bars) {
-  const int barWidth  = 3;
-  const int barSpace  = 1;
+  const int barWidth = 3;
+  const int barSpace = 1;
   const int maxHeight = 10;
 
   for (int i = 0; i < 4; i++) {
-    int barX = x + i * (barWidth + barSpace);
-    int barHeight = maxHeight * (i + 1) / 4;
-    int barY = y - barHeight;
-
     if (i < bars) {
+      int barX = x + i * (barWidth + barSpace);
+      int barHeight = maxHeight * (i + 1) / 4;
+      int barY = y - barHeight;
+
       display.fillRect(barX, barY, barWidth, barHeight, SSD1306_WHITE);
-    } else {
-      display.drawRect(barX, barY, barWidth, barHeight, SSD1306_WHITE);
     }
   }
 }
+void drawStatusBar() {
+  // Clear only the top bar (16px tall so you have room for icon + text)
+  display.fillRect(0, 0, 128, 16, SSD1306_BLACK);
 
+  int rssi = WiFi.RSSI();
+  int bars = wifiBarsFromRSSI(rssi);
+
+  // Draw wifi icon in the top-left (keep iconY within 0..15)
+  drawWifiIcon(iconX, iconY, bars);
+
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+
+  // Put IP on the same top band (use y=0 or y=8)
+  display.setCursor(iconX + 18, 6);
+  display.print(WiFi.localIP());
+
+  display.display();
+}
+
+void OpenSplash() {
+  display.clearDisplay();
+  display.clearDisplay();
+  display.drawBitmap(0, 0, mpc_labs_wave_bitmap, 128, 64, SSD1306_WHITE);
+  display.display();
+
+  delay(2000);
+
+  display.clearDisplay();
+  display.drawBitmap(0, 0, tee_blk_bitmap, 128, 64, SSD1306_WHITE);
+  display.display();
+
+  delay(2000);
+  display.clearDisplay();
+
+
+}
