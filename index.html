@@ -1,23 +1,441 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>ESP32 Button Counter</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Would You Rather? — Live Vote</title>
+
+  <style>
+    :root {
+      --bg: #0b1220;
+      --card: rgba(255,255,255,0.08);
+      --card2: rgba(255,255,255,0.05);
+      --text: #f2f5ff;
+      --muted: rgba(242,245,255,0.82);
+      --border: rgba(255,255,255,0.18);
+      --a: #62d2ff;
+      --b: #ffd166;
+      --win: #57e389;
+
+      --focus: #ffffff;
+      --focusRing: rgba(98, 210, 255, 0.55);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(1200px 700px at 20% -10%, rgba(98,210,255,0.22), transparent 55%),
+        radial-gradient(900px 600px at 110% 10%, rgba(255,209,102,0.18), transparent 50%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    /* Skip link (keyboard users) */
+    .skip-link {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(0,0,0,0.85);
+      color: var(--text);
+      border: 2px solid rgba(255,255,255,0.35);
+      transform: translateY(-140%);
+      transition: transform 120ms ease;
+      z-index: 9999;
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .skip-link:focus {
+      transform: translateY(0);
+      outline: none;
+      box-shadow: 0 0 0 4px var(--focusRing);
+    }
+
+    /* Focus visibility (WCAG-friendly) */
+    :focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 3px;
+      box-shadow: 0 0 0 4px var(--focusRing);
+      border-radius: 10px;
+    }
+
+    .wrap {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 28px 18px 40px;
+    }
+
+    /* Centered header */
+    .mainHeader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .headerContent {
+      max-width: 800px;
+    }
+
+    .mainHeader h1 {
+      font-size: clamp(34px, 5vw, 54px);
+      line-height: 1.05;
+      margin: 0 0 12px;
+      letter-spacing: -0.02em;
+    }
+
+    .lead {
+      font-size: clamp(18px, 2.2vw, 24px);
+      font-weight: 800;
+      margin: 0 0 10px;
+      color: rgba(255,255,255,0.97);
+    }
+
+    .optionsLine {
+      font-size: 18px;
+      color: var(--muted);
+      margin: 0;
+      line-height: 1.35;
+    }
+
+    .statusPill {
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.22);
+      padding: 10px 12px;
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 14px;
+      display: inline-flex;
+      gap: 10px;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.35);
+      flex: 0 0 auto;
+    }
+    .dot.live { background: var(--win); }
+
+    /* A11y utility */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    @media (min-width: 880px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: 18px;
+      padding: 14px;
+      overflow: hidden;
+      position: relative;
+      transition: transform 120ms ease, border-color 120ms ease;
+    }
+
+    .card.winner {
+      border-color: rgba(87,227,137,0.75);
+      box-shadow: 0 0 0 1px rgba(87,227,137,0.25) inset, 0 18px 60px rgba(0,0,0,0.35);
+      transform: translateY(-1px);
+    }
+
+    .badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.40);
+      border: 1px solid rgba(255,255,255,0.18);
+      backdrop-filter: blur(6px);
+      font-weight: 900;
+      color: rgba(255,255,255,0.95);
+    }
+
+    .letter {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: #061021;
+      font-weight: 900;
+    }
+    .badge.a .letter { background: var(--a); }
+    .badge.b .letter { background: var(--b); }
+
+    .scene {
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: var(--card2);
+      padding: 10px;
+      margin-top: 40px;
+    }
+
+    /* No cropping */
+    .scene img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+
+    .sceneLabel {
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .choiceTitle {
+      margin: 12px 0 6px;
+      font-size: 18px;
+      letter-spacing: -0.01em;
+    }
+    .choiceDesc {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    .statsRow {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .countBox {
+      display: inline-flex;
+      gap: 10px;
+      align-items: baseline;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(0,0,0,0.22);
+      min-width: 170px;
+    }
+
+    .countBox .label {
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .countBox .value {
+      font-size: 30px;
+      font-weight: 950;
+      letter-spacing: -0.02em;
+    }
+
+    .barWrap {
+      flex: 1;
+      min-width: 230px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(0,0,0,0.22);
+    }
+
+    .barTop {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .bar {
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.12);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.16);
+    }
+
+    .fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      transition: width 220ms ease;
+    }
+    .fill.a { background: var(--a); }
+    .fill.b { background: var(--b); }
+
+    footer {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    code { color: #cbd3ff; }
+
+    /* Respect reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      * { scroll-behavior: auto !important; }
+      .fill, .card, .skip-link { transition: none !important; }
+    }
+  </style>
 </head>
+
 <body>
+  <a class="skip-link" href="#main">Skip to results</a>
 
-  <h1>ESP32 Button Counter</h1>
+  <div class="wrap">
+    <header class="mainHeader" role="banner">
+      <div class="headerContent">
+        <h1>Would You Rather?</h1>
+        <p class="lead">
+          Press Button <b>A</b> or <b>B</b> on the ESP32 and watch the votes update in real time.
+        </p>
+        <p class="optionsLine">
+          <b>A</b> = 100 horse-sized ducks • <b>B</b> = 1 duck-sized horse
+        </p>
+      </div>
 
-  <p>Button A: <span id="countA">0</span></p>
-  <p>Button B: <span id="countB">0</span></p>
-  <p id="status">Waiting for data...</p>
+      <!-- Status: includes text so it's not color-only -->
+      <div class="statusPill" role="status" aria-live="polite" aria-atomic="true">
+        <span class="dot" id="liveDot" aria-hidden="true"></span>
+        <span id="status">Connecting…</span>
+        <span class="sr-only" id="statusA11y">Connection status</span>
+      </div>
+    </header>
+
+    <main id="main" role="main" aria-label="Live vote results">
+      <!-- Live region for updates (screen readers) -->
+      <div class="sr-only" id="liveAnnounce" aria-live="polite" aria-atomic="true"></div>
+
+      <div class="grid">
+        <!-- Option A -->
+        <section class="card" id="cardA" aria-labelledby="titleA">
+          <div class="badge a">
+            <span class="letter" aria-hidden="true">A</span>
+            <span id="titleA">100 Horse-Sized Ducks</span>
+          </div>
+
+          <div class="scene">
+            <img
+              src="A-Horse%20Sized%20Ducks.png"
+              alt="Option A: a field scene showing many large ducks with a truck nearby for scale."
+            >
+            <div class="sceneLabel">
+              <span>Option A image</span>
+              <span>“100 of these?!”</span>
+            </div>
+          </div>
+
+          <h2 class="choiceTitle">Option A</h2>
+          <p class="choiceDesc">A chaotic swarm of giant ducks. Lots of enemies… but maybe they trip over each other.</p>
+
+          <div class="statsRow" aria-label="Option A results">
+            <div class="countBox">
+              <span class="label">Votes (A)</span>
+              <span class="value" id="countA" aria-label="Votes for option A">0</span>
+            </div>
+
+            <div class="barWrap" aria-label="Option A percentage">
+              <div class="barTop">
+                <span>A share</span>
+                <span id="pctA">0%</span>
+              </div>
+              <div class="bar" role="progressbar" aria-label="Option A percent" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div class="fill a" id="barA"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Option B -->
+        <section class="card" id="cardB" aria-labelledby="titleB">
+          <div class="badge b">
+            <span class="letter" aria-hidden="true">B</span>
+            <span id="titleB">Duck-Sized Horse</span>
+          </div>
+
+          <div class="scene">
+            <img
+              src="B-Duck_Sized_Horse.png"
+              alt="Option B: an image representing a duck-sized horse scenario."
+            >
+            <div class="sceneLabel">
+              <span>Option B image</span>
+              <span>“Small… but spicy.”</span>
+            </div>
+          </div>
+
+          <h2 class="choiceTitle">Option B</h2>
+          <p class="choiceDesc">One tiny horse the size of a duck. Only one opponent… but quick, slippery, and annoying.</p>
+
+          <div class="statsRow" aria-label="Option B results">
+            <div class="countBox">
+              <span class="label">Votes (B)</span>
+              <span class="value" id="countB" aria-label="Votes for option B">0</span>
+            </div>
+
+            <div class="barWrap" aria-label="Option B percentage">
+              <div class="barTop">
+                <span>B share</span>
+                <span id="pctB">0%</span>
+              </div>
+              <div class="bar" role="progressbar" aria-label="Option B percent" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div class="fill b" id="barB"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <footer>
+        <div>Realtime data from Firebase: <code>/counts</code> → <code>a</code> and <code>b</code></div>
+        <div>If Chrome looks stale: hard refresh <code>Ctrl + Shift + R</code>.</div>
+      </footer>
+    </main>
+  </div>
 
   <script type="module">
-    // Import Firebase from CDN
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
 
-    // Firebase configuration (your project)
     const firebaseConfig = {
       apiKey: "AIzaSyDOhSiZJFB_MA968ungP3ibT4deiVvkVLg",
       authDomain: "push-my-buttons.firebaseapp.com",
@@ -28,58 +446,85 @@
       appId: "1:181485198840:web:bf557318a930eeddce0a0d"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    console.log("Firebase initialized (index.html)");
+    const liveDot = document.getElementById("liveDot");
+    const statusEl = document.getElementById("status");
+    const liveAnnounce = document.getElementById("liveAnnounce");
 
-    // Grab DOM elements (these MUST exist above in the HTML)
     const countAEl = document.getElementById("countA");
     const countBEl = document.getElementById("countB");
-    const statusEl = document.getElementById("status");
+    const pctAEl = document.getElementById("pctA");
+    const pctBEl = document.getElementById("pctB");
+    const barAEl = document.getElementById("barA");
+    const barBEl = document.getElementById("barB");
+    const cardA = document.getElementById("cardA");
+    const cardB = document.getElementById("cardB");
 
-    if (!countAEl || !countBEl || !statusEl) {
-      console.error("DOM elements not found: ",
-        "countAEl:", countAEl,
-        "countBEl:", countBEl,
-        "statusEl:", statusEl
-      );
-    } else {
-      statusEl.textContent = "Listening for data...";
+    const progA = cardA.querySelector('.bar[role="progressbar"]');
+    const progB = cardB.querySelector('.bar[role="progressbar"]');
+
+    let lastAnnounced = { a: null, b: null };
+
+    function updateUI(a, b) {
+      countAEl.textContent = String(a);
+      countBEl.textContent = String(b);
+
+      const total = a + b;
+      const pctA = total > 0 ? Math.round((a / total) * 100) : 0;
+      const pctB = total > 0 ? 100 - pctA : 0;
+
+      pctAEl.textContent = pctA + "%";
+      pctBEl.textContent = pctB + "%";
+      barAEl.style.width = pctA + "%";
+      barBEl.style.width = pctB + "%";
+
+      // Update ARIA progress values
+      progA.setAttribute("aria-valuenow", String(pctA));
+      progB.setAttribute("aria-valuenow", String(pctB));
+
+      // Winner highlight (not color-only; still readable with text)
+      cardA.classList.toggle("winner", total > 0 && a > b);
+      cardB.classList.toggle("winner", total > 0 && b > a);
+      if (total > 0 && a === b) {
+        cardA.classList.remove("winner");
+        cardB.classList.remove("winner");
+      }
+
+      // Screen reader announcement (polite) only when values change
+      if (lastAnnounced.a !== a || lastAnnounced.b !== b) {
+        lastAnnounced = { a, b };
+        liveAnnounce.textContent = `Votes updated. Option A: ${a}. Option B: ${b}.`;
+      }
     }
 
-    // Reference to /counts in the database
     const countsRef = ref(db, "counts");
 
-    // Listen for live updates
     onValue(
       countsRef,
       (snapshot) => {
         const data = snapshot.val();
-        console.log("Firebase /counts snapshot:", data);
+        liveDot.classList.add("live");
 
         if (!data) {
-          if (statusEl) statusEl.textContent = "No data found in Firebase";
-          if (countAEl) countAEl.textContent = "0";
-          if (countBEl) countBEl.textContent = "0";
+          statusEl.textContent = "No data at /counts";
+          updateUI(0, 0);
           return;
         }
 
-        // Safely update the numbers on the page
-        if (countAEl) countAEl.textContent = data.a ?? 0;
-        if (countBEl) countBEl.textContent = data.b ?? 0;
-        if (statusEl) {
-          statusEl.textContent =
-            "Last update: " + new Date().toLocaleTimeString();
-        }
+        const a = Number(data.a ?? 0);
+        const b = Number(data.b ?? 0);
+
+        updateUI(a, b);
+        statusEl.textContent = "Live connection • " + new Date().toLocaleTimeString();
       },
       (error) => {
-        console.error("Firebase read error:", error);
-        if (statusEl) statusEl.textContent = "Error reading Firebase";
+        liveDot.classList.remove("live");
+        statusEl.textContent = "Error: " + error.message;
+        liveAnnounce.textContent = "Error reading live vote data.";
       }
     );
   </script>
-
 </body>
 </html>
