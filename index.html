@@ -13,8 +13,8 @@
       --text: #f2f5ff;
       --muted: rgba(242,245,255,0.82);
       --border: rgba(255,255,255,0.18);
-      --a: #62d2ff;
-      --b: #ffd166;
+      --a: #2c0ce4;
+      --b: #d3242d;
       --win: #57e389;
 
       --focus: #ffffff;
@@ -48,7 +48,7 @@
       transition: transform 120ms ease;
       z-index: 9999;
       text-decoration: none;
-      font-weight: 700;
+      font-weight: 800;
     }
     .skip-link:focus {
       transform: translateY(0);
@@ -56,7 +56,7 @@
       box-shadow: 0 0 0 4px var(--focusRing);
     }
 
-    /* Focus visibility (WCAG-friendly) */
+    /* Focus visibility */
     :focus-visible {
       outline: 2px solid var(--focus);
       outline-offset: 3px;
@@ -70,7 +70,7 @@
       padding: 28px 18px 40px;
     }
 
-    /* Centered header */
+    /* Header */
     .mainHeader {
       display: flex;
       flex-direction: column;
@@ -81,7 +81,7 @@
     }
 
     .headerContent {
-      max-width: 800px;
+      max-width: 820px;
     }
 
     .mainHeader h1 {
@@ -93,7 +93,7 @@
 
     .lead {
       font-size: clamp(18px, 2.2vw, 24px);
-      font-weight: 800;
+      font-weight: 900;
       margin: 0 0 10px;
       color: rgba(255,255,255,0.97);
     }
@@ -127,7 +127,7 @@
     }
     .dot.live { background: var(--win); }
 
-    /* A11y utility */
+    /* Screen-reader only */
     .sr-only {
       position: absolute;
       width: 1px;
@@ -165,6 +165,7 @@
       transform: translateY(-1px);
     }
 
+    /* Badge with A/B + descriptive text (restored) */
     .badge {
       position: absolute;
       top: 12px;
@@ -177,8 +178,8 @@
       background: rgba(0,0,0,0.40);
       border: 1px solid rgba(255,255,255,0.18);
       backdrop-filter: blur(6px);
-      font-weight: 900;
-      color: rgba(255,255,255,0.95);
+      font-weight: 950;
+      color: rgba(255,255,255,0.96);
     }
 
     .letter {
@@ -188,7 +189,8 @@
       display: grid;
       place-items: center;
       color: #061021;
-      font-weight: 900;
+      font-weight: 950;
+      flex: 0 0 auto;
     }
     .badge.a .letter { background: var(--a); }
     .badge.b .letter { background: var(--b); }
@@ -225,6 +227,7 @@
       font-size: 18px;
       letter-spacing: -0.01em;
     }
+
     .choiceDesc {
       margin: 0 0 10px;
       color: var(--muted);
@@ -252,7 +255,7 @@
     }
 
     .countBox .label {
-      font-weight: 900;
+      font-weight: 950;
       letter-spacing: 0.02em;
       text-transform: uppercase;
       font-size: 12px;
@@ -310,9 +313,7 @@
 
     code { color: #cbd3ff; }
 
-    /* Respect reduced motion */
     @media (prefers-reduced-motion: reduce) {
-      * { scroll-behavior: auto !important; }
       .fill, .card, .skip-link { transition: none !important; }
     }
   </style>
@@ -326,23 +327,21 @@
       <div class="headerContent">
         <h1>Would You Rather?</h1>
         <p class="lead">
-          Press Button <b>A</b> or <b>B</b> on the ESP32 and watch the votes update in real time.
+          Press Button <b>A</b> or <b>B</b> on the controller and watch the votes update in real time.
         </p>
         <p class="optionsLine">
-          <b>A</b> = 100 horse-sized ducks • <b>B</b> = 1 duck-sized horse
+          <b>A</b> = 100 horses the size of ducks • <b>B</b> = 1 duck the size of a horse
         </p>
       </div>
 
-      <!-- Status: includes text so it's not color-only -->
       <div class="statusPill" role="status" aria-live="polite" aria-atomic="true">
         <span class="dot" id="liveDot" aria-hidden="true"></span>
         <span id="status">Connecting…</span>
-        <span class="sr-only" id="statusA11y">Connection status</span>
       </div>
     </header>
 
     <main id="main" role="main" aria-label="Live vote results">
-      <!-- Live region for updates (screen readers) -->
+      <!-- Screen reader announcement for dynamic updates -->
       <div class="sr-only" id="liveAnnounce" aria-live="polite" aria-atomic="true"></div>
 
       <div class="grid">
@@ -350,22 +349,22 @@
         <section class="card" id="cardA" aria-labelledby="titleA">
           <div class="badge a">
             <span class="letter" aria-hidden="true">A</span>
-            <span id="titleA">100 Horse-Sized Ducks</span>
+            <span id="titleA">100 Horses the Size of Ducks</span>
           </div>
 
           <div class="scene">
             <img
               src="A-Horse%20Sized%20Ducks.png"
-              alt="Option A: a field scene showing many large ducks with a truck nearby for scale."
+              alt="Option A: an image representing many small horses the size of ducks."
             >
             <div class="sceneLabel">
               <span>Option A image</span>
-              <span>“100 of these?!”</span>
+              <span>“Tiny stampede.”</span>
             </div>
           </div>
 
           <h2 class="choiceTitle">Option A</h2>
-          <p class="choiceDesc">A chaotic swarm of giant ducks. Lots of enemies… but maybe they trip over each other.</p>
+          <p class="choiceDesc">100 tiny horses. Many opponents… but each one is duck-sized.</p>
 
           <div class="statsRow" aria-label="Option A results">
             <div class="countBox">
@@ -378,7 +377,7 @@
                 <span>A share</span>
                 <span id="pctA">0%</span>
               </div>
-              <div class="bar" role="progressbar" aria-label="Option A percent" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <div class="bar" id="progA" role="progressbar" aria-label="Option A percent" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
                 <div class="fill a" id="barA"></div>
               </div>
             </div>
@@ -389,22 +388,22 @@
         <section class="card" id="cardB" aria-labelledby="titleB">
           <div class="badge b">
             <span class="letter" aria-hidden="true">B</span>
-            <span id="titleB">Duck-Sized Horse</span>
+            <span id="titleB">1 Duck the Size of a Horse</span>
           </div>
 
           <div class="scene">
             <img
               src="B-Duck_Sized_Horse.png"
-              alt="Option B: an image representing a duck-sized horse scenario."
+              alt="Option B: an image representing one duck the size of a horse."
             >
             <div class="sceneLabel">
               <span>Option B image</span>
-              <span>“Small… but spicy.”</span>
+              <span>“One big problem.”</span>
             </div>
           </div>
 
           <h2 class="choiceTitle">Option B</h2>
-          <p class="choiceDesc">One tiny horse the size of a duck. Only one opponent… but quick, slippery, and annoying.</p>
+          <p class="choiceDesc">One enormous duck the size of a horse. Just one… but huge.</p>
 
           <div class="statsRow" aria-label="Option B results">
             <div class="countBox">
@@ -417,7 +416,7 @@
                 <span>B share</span>
                 <span id="pctB">0%</span>
               </div>
-              <div class="bar" role="progressbar" aria-label="Option B percent" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <div class="bar" id="progB" role="progressbar" aria-label="Option B percent" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
                 <div class="fill b" id="barB"></div>
               </div>
             </div>
@@ -459,11 +458,10 @@
     const pctBEl = document.getElementById("pctB");
     const barAEl = document.getElementById("barA");
     const barBEl = document.getElementById("barB");
+    const progAEl = document.getElementById("progA");
+    const progBEl = document.getElementById("progB");
     const cardA = document.getElementById("cardA");
     const cardB = document.getElementById("cardB");
-
-    const progA = cardA.querySelector('.bar[role="progressbar"]');
-    const progB = cardB.querySelector('.bar[role="progressbar"]');
 
     let lastAnnounced = { a: null, b: null };
 
@@ -480,11 +478,10 @@
       barAEl.style.width = pctA + "%";
       barBEl.style.width = pctB + "%";
 
-      // Update ARIA progress values
-      progA.setAttribute("aria-valuenow", String(pctA));
-      progB.setAttribute("aria-valuenow", String(pctB));
+      progAEl.setAttribute("aria-valuenow", String(pctA));
+      progBEl.setAttribute("aria-valuenow", String(pctB));
 
-      // Winner highlight (not color-only; still readable with text)
+      // Winner glow (not color-only; the numbers still convey meaning)
       cardA.classList.toggle("winner", total > 0 && a > b);
       cardB.classList.toggle("winner", total > 0 && b > a);
       if (total > 0 && a === b) {
@@ -492,7 +489,7 @@
         cardB.classList.remove("winner");
       }
 
-      // Screen reader announcement (polite) only when values change
+      // Screen-reader announcement when values change
       if (lastAnnounced.a !== a || lastAnnounced.b !== b) {
         lastAnnounced = { a, b };
         liveAnnounce.textContent = `Votes updated. Option A: ${a}. Option B: ${b}.`;
