@@ -69,10 +69,18 @@ void sendCountsToFirebase(unsigned long a, unsigned long b) {
   HTTPClient http;
 
   String url = String(firebaseHost) + String(firebasePath);
-  Serial.print("Sending to URL: ");
-  Serial.println(url);
+  
+  display.clearDisplay();
+  display.setTextSize(2);
+  
+  display.setCursor(0, 16);         display.print("Sending");
+  Serial.print("Sending to URL: "); Serial.println(url);
+  display.display();
+
 
   if (!http.begin(client, url)) {
+    display.clearDisplay();
+    display.setCursor(0, 16);         display.print("Failed");
     Serial.println("HTTP begin() failed");
     return;
   }
@@ -92,13 +100,24 @@ void sendCountsToFirebase(unsigned long a, unsigned long b) {
 
   if (httpCode > 0) {
     String response = http.getString();
+
+    display.clearDisplay();
+    display.setTextSize(2);
+
+    display.setCursor(0, 16);         display.print("Good");
+    display.setCursor(0, 32);         display.print("Send");
+    display.display();
+
     Serial.print("Firebase response: ");
     Serial.println(response);
+
   } else {
     Serial.println("HTTP request failed");
   }
 
   http.end();
+  delay(1000);
+  Temple_48();
 }
 
 void Status_RGB(char led) {
@@ -245,4 +264,10 @@ void OpenSplash() {
   display.clearDisplay();
 
 
+}
+
+void Temple_48(){
+  display.clearDisplay();
+  display.drawBitmap(0, 16, tee_blk_bitmap_128x48, 128, 48, SSD1306_WHITE);
+  display.display();
 }

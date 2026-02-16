@@ -62,11 +62,13 @@ void sendCountsToFirebase(unsigned long a, unsigned long b);
 
 void OpenSplash();
 void drawStatusBar();
+void Temple_48();
 
 extern Adafruit_SSD1306 display;
 
 int wifiBarsFromRSSI(int rssi);
 void drawWifiIcon(int x, int y, int bars);
+
 
 const unsigned char mpc_labs_wave_bitmap[] PROGMEM = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 

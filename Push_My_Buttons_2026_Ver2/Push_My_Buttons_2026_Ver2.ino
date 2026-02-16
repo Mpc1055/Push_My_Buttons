@@ -36,24 +36,25 @@ const char* firebasePath = "/counts.json";  // we'll PUT here
 unsigned long lastSendTime = 0;
 const unsigned long sendIntervalMs = 5000;  // send every 5 seconds
 
-int lastA = LOW;
-int lastB = LOW;
+int lastA = HIGH;
+int lastB = HIGH;
 
 const unsigned long debounceMs = 30;
 unsigned long lastPressA = 0;
 unsigned long lastPressB = 0;
 
 void setup() {
-  
+
 
   Serial.begin(115200);
-  Wire.begin(SDA_PIN , SCL_PIN);
+  Wire.begin(SDA_PIN, SCL_PIN);
   delay(1000);
 
-    // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+  // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
+  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("SSD1306 allocation failed"));
-    for(;;); // Don't proceed, loop forever
+    for (;;)
+      ;  // Don't proceed, loop forever
   }
   OpenSplash();
 
@@ -67,35 +68,41 @@ void setup() {
   pinMode(statGreen, OUTPUT);
 
   // A Button LED
-  pinMode(aRed,    OUTPUT);
-  pinMode(aGreen,  OUTPUT);
-  pinMode(aBlue,   OUTPUT);
+  pinMode(aRed, OUTPUT);
+  pinMode(aGreen, OUTPUT);
+  pinMode(aBlue, OUTPUT);
 
   //B Button LED
-  pinMode(bRed,    OUTPUT);
-  pinMode(bGreen,  OUTPUT);
-  pinMode(bBlue,   OUTPUT);
+  pinMode(bRed, OUTPUT);
+  pinMode(bGreen, OUTPUT);
+  pinMode(bBlue, OUTPUT);
 
   Status_RGB('r');
 
+  delay(50);  // let the pullups settle
+  lastA = digitalRead(buttonAPin);
+  lastB = digitalRead(buttonBPin);
+
   // Connect to Wi-Fi
   display.clearDisplay();
-  display.setTextSize(2);              // 1 = small, 2 = bigger, etc.
+  display.setTextSize(2);  // 1 = small, 2 = bigger, etc.
   display.setTextColor(SSD1306_WHITE);
-  
-  display.setCursor(0, 0);  display.print("Connecting");
-  display.setCursor(0, 16);  display.print(ssid);
+
+  display.setCursor(0, 0);
+  display.print("Connecting");
+  display.setCursor(0, 16);
+  display.print(ssid);
   display.display();
 
   Serial.println();
   Serial.println("Connecting to WiFi...");
   Serial.print("SSID: ");
   Serial.print(ssid);
-  
+
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
 
-  
+
   // Check if WiFi is connected
   //display.setCursor(0, 24);
   while (WiFi.status() != WL_CONNECTED) {
@@ -107,11 +114,9 @@ void setup() {
     Status_RGB('o');
     display.display();
   }
-display.clearDisplay();
-  display.drawBitmap(0, 16, tee_blk_bitmap_128x48, 128, 48, SSD1306_WHITE);
-  display.display();
+Temple_48();
   // // Show WiFi is connected
-  
+
   drawStatusBar();
 
 
@@ -127,52 +132,35 @@ display.clearDisplay();
 
   A_RGB('g');
   B_RGB('g');
-
 }
 
 void loop() {
 
 
   drawStatusBar();
-// Draw WiFi icon
-  // if (WiFi.status() == WL_CONNECTED) {
-
-  //   int rssi = WiFi.RSSI();
-  //   int bars = wifiBarsFromRSSI(rssi);
-  //   drawWifiIcon(iconX, iconY, bars);
-  // }
-
-  // display.display();
-
-
-
-
-
 
   int currentA = digitalRead(buttonAPin);
   int currentB = digitalRead(buttonBPin);
   unsigned long now = millis();
 
-  if (lastA == LOW && currentA == HIGH && (now - lastPressA) > debounceMs) {
+
+
+  if (lastA == HIGH && currentA == LOW && (now - lastPressA) > debounceMs) {
     countA++;
     lastPressA = now;
-
     A_RGB('r');
     sendCountsToFirebase(countA, countB);
     A_RGB('g');
-
   }
 
-  if (lastB == LOW && currentB == HIGH && (now - lastPressB) > debounceMs) {
+  if (lastB == HIGH && currentB == LOW && (now - lastPressB) > debounceMs) {
     countB++;
     lastPressB = now;
-
     B_RGB('r');
     sendCountsToFirebase(countA, countB);
     B_RGB('g');
-
   }
-
+  
   lastA = currentA;
   lastB = currentB;
 }
