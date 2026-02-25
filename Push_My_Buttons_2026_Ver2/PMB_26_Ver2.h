@@ -15,22 +15,22 @@
 
 
 // Status LED pins
-#define statRed   19
-#define statGreen 21
-#define statBlue  22
+#define statRed   26
+#define statGreen 27
+#define statBlue  14
 
 //Button A LED
-#define aRed      13
-#define aGreen    12
-#define aBlue     14
+#define aRed      23
+#define aGreen    22
+#define aBlue     21
 
 //Button B Led
-#define bRed    27
-#define bGreen  26
-#define bBlue   25
+#define bRed    19
+#define bGreen  5
+#define bBlue   18
 
 // Button pins
-#define buttonAPin 5
+#define buttonAPin 25
 #define buttonBPin 4
 
 // OLED Variables
@@ -51,11 +51,9 @@ extern const char* password;
 extern const char* firebaseHost;
 extern const char* firebasePath;
 
-// Function prototypes
 
-void Status_RGB(char led);
-void A_RGB(char led);
-void B_RGB(char led);
+
+// Function prototypes
 
 void loadCountsFromFirebase();
 void sendCountsToFirebase(unsigned long a, unsigned long b);
@@ -66,8 +64,23 @@ void Temple_48();
 
 extern Adafruit_SSD1306 display;
 
+
 int wifiBarsFromRSSI(int rssi);
 void drawWifiIcon(int x, int y, int bars);
+
+class RGB {
+  private:
+    int red;
+    int green;
+    int blue;
+
+  public:
+    RGB(int r, int g, int b);   // Constructor declaration
+
+    void Red(int state);
+    void Green(int state);
+    void Blue(int state);
+};
 
 
 const unsigned char mpc_labs_wave_bitmap[] PROGMEM = {
@@ -257,4 +270,8 @@ const unsigned char tee_blk_bitmap_128x48[] PROGMEM = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
 
 };
+
+extern RGB statusLED;
+extern RGB aLED;
+extern RGB bLED;
 #endif

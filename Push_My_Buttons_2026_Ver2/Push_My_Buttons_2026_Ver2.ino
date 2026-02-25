@@ -10,7 +10,9 @@
 #include "PMB_26_Ver2.h"
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-
+RGB statusLED(statRed, statGreen, statBlue);
+RGB aLED(aRed, aGreen, aBlue);
+RGB bLED(bRed, bGreen, bBlue);
 
 
 // Actual definitions of globals (only here!)
@@ -20,11 +22,11 @@ unsigned long countB = 0;
 // const char* ssid = "MpcS21";
 // const char* password = "tmec321$";
 
-// const char* ssid = "tuiot";
-// const char* password = "bruc3l0w3";
+const char* ssid = "tuiot";
+const char* password = "bruc3l0w3";
 
-const char* ssid = "Vandaley Industries";
-const char* password = "15Tattergrace48";
+// const char* ssid = "Vandaley Industries";
+// const char* password = "15Tattergrace48";
 
 // -------------------- Firebase settings --------------------
 const char* firebaseHost = "https://push-my-buttons-default-rtdb.firebaseio.com";
@@ -44,8 +46,10 @@ unsigned long lastPressA = 0;
 unsigned long lastPressB = 0;
 
 void setup() {
-
-
+  statusLED.Red(HIGH);
+  aLED.Red(HIGH);
+  bLED.Red(HIGH);
+  
   Serial.begin(115200);
   Wire.begin(SDA_PIN, SCL_PIN);
   delay(1000);
@@ -62,22 +66,7 @@ void setup() {
   pinMode(buttonAPin, INPUT_PULLUP);
   pinMode(buttonBPin, INPUT_PULLUP);
 
-  // Status LED Setup
-  pinMode(statBlue, OUTPUT);
-  pinMode(statRed, OUTPUT);
-  pinMode(statGreen, OUTPUT);
-
-  // A Button LED
-  pinMode(aRed, OUTPUT);
-  pinMode(aGreen, OUTPUT);
-  pinMode(aBlue, OUTPUT);
-
-  //B Button LED
-  pinMode(bRed, OUTPUT);
-  pinMode(bGreen, OUTPUT);
-  pinMode(bBlue, OUTPUT);
-
-  Status_RGB('r');
+ 
 
   delay(50);  // let the pullups settle
   lastA = digitalRead(buttonAPin);
@@ -107,22 +96,21 @@ void setup() {
   //display.setCursor(0, 24);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Status_RGB('r');
+    statusLED.Red(HIGH);
     display.print(".");
     Serial.print(".");
     delay(100);
-    Status_RGB('o');
+    statusLED.Red(LOW);
     display.display();
   }
+
+
 Temple_48();
   // // Show WiFi is connected
 
   drawStatusBar();
+  statusLED.Blue(HIGH);
 
-
-
-
-  Status_RGB('b');
   Serial.println();
   Serial.println("WiFi connected!");
   Serial.print("ESP32 IP address: ");
@@ -130,8 +118,10 @@ Temple_48();
 
   loadCountsFromFirebase();
 
-  A_RGB('g');
-  B_RGB('g');
+  aLED.Green(HIGH);
+  bLED.Green(HIGH);
+
+
 }
 
 void loop() {
@@ -148,17 +138,20 @@ void loop() {
   if (lastA == HIGH && currentA == LOW && (now - lastPressA) > debounceMs) {
     countA++;
     lastPressA = now;
-    A_RGB('r');
+
+    
     sendCountsToFirebase(countA, countB);
-    A_RGB('g');
+
+
   }
 
   if (lastB == HIGH && currentB == LOW && (now - lastPressB) > debounceMs) {
     countB++;
     lastPressB = now;
-    B_RGB('r');
+
     sendCountsToFirebase(countA, countB);
-    B_RGB('g');
+
+
   }
   
   lastA = currentA;

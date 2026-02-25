@@ -58,11 +58,17 @@ void loadCountsFromFirebase() {
 }
 
 void sendCountsToFirebase(unsigned long a, unsigned long b) {
+  aLED.Red(HIGH);
+  bLED.Red(HIGH);
+
+  statusLED.Red(HIGH);
+  
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("WiFi not connected, can't send to Firebase");
     return;
   }
 
+  
   WiFiClientSecure client;
   client.setInsecure();  // NOTE: for simplicity; skips certificate check
 
@@ -100,13 +106,16 @@ void sendCountsToFirebase(unsigned long a, unsigned long b) {
 
   if (httpCode > 0) {
     String response = http.getString();
-
+    statusLED.Green(HIGH);
     display.clearDisplay();
     display.setTextSize(2);
 
     display.setCursor(0, 16);         display.print("Good");
     display.setCursor(0, 32);         display.print("Send");
     display.display();
+    delay(500);
+    statusLED.Blue(HIGH);
+
 
     Serial.print("Firebase response: ");
     Serial.println(response);
@@ -118,91 +127,12 @@ void sendCountsToFirebase(unsigned long a, unsigned long b) {
   http.end();
   delay(1000);
   Temple_48();
+
+  aLED.Green(HIGH);
+  bLED.Green(HIGH);
 }
 
-void Status_RGB(char led) {
-  switch (led) {
-    case 'r':
-      digitalWrite(statRed, HIGH);
-      digitalWrite(statBlue, LOW);
-      digitalWrite(statGreen, LOW);
-      break;
 
-    case 'g':
-      digitalWrite(statRed, LOW);
-      digitalWrite(statBlue, LOW);
-      digitalWrite(statGreen, HIGH);
-      break;
-
-    case 'b':
-      digitalWrite(statRed, LOW);
-      digitalWrite(statBlue, HIGH);
-      digitalWrite(statGreen, LOW);
-      break;
-
-    case 'o':
-      digitalWrite(aRed, LOW);
-      digitalWrite(aBlue, LOW);
-      digitalWrite(aGreen, LOW);
-      break;
-  }
-}
-
-void A_RGB(char led) {
-  switch (led) {
-    case 'r':
-      digitalWrite(aRed, HIGH);
-      digitalWrite(aBlue, LOW);
-      digitalWrite(aGreen, LOW);
-      break;
-
-    case 'g':
-      digitalWrite(aRed, LOW);
-      digitalWrite(aBlue, LOW);
-      digitalWrite(aGreen, HIGH);
-      break;
-
-    case 'b':
-      digitalWrite(aRed, LOW);
-      digitalWrite(aBlue, HIGH);
-      digitalWrite(aGreen, LOW);
-      break;
-
-    case 'o':
-      digitalWrite(aRed, LOW);
-      digitalWrite(aBlue, LOW);
-      digitalWrite(aGreen, LOW);
-      break;
-  }
-}
-
-void B_RGB(char led) {
-  switch (led) {
-    case 'r':
-      digitalWrite(bRed, HIGH);
-      digitalWrite(bBlue, LOW);
-      digitalWrite(bGreen, LOW);
-      break;
-
-    case 'g':
-      digitalWrite(bRed, LOW);
-      digitalWrite(bBlue, LOW);
-      digitalWrite(bGreen, HIGH);
-      break;
-
-    case 'b':
-      digitalWrite(bRed, LOW);
-      digitalWrite(bBlue, HIGH);
-      digitalWrite(bGreen, LOW);
-      break;
-
-    case 'o':
-      digitalWrite(aRed, LOW);
-      digitalWrite(aBlue, LOW);
-      digitalWrite(aGreen, LOW);
-      break;
-  }
-}
 
 int wifiBarsFromRSSI(int rssi) {
   if (rssi <= -90) return 0;
@@ -271,3 +201,41 @@ void Temple_48(){
   display.drawBitmap(0, 16, tee_blk_bitmap_128x48, 128, 48, SSD1306_WHITE);
   display.display();
 }
+
+
+RGB::RGB(int r, int g, int b)  {
+  red = r;
+  green = g;
+  blue = b;
+
+  pinMode(red, OUTPUT);
+  pinMode(green, OUTPUT);
+  pinMode(blue, OUTPUT);
+
+  digitalWrite(red, LOW);
+  digitalWrite(green, LOW);
+  digitalWrite(blue, LOW);
+}
+
+void RGB::Red(int state) {
+  digitalWrite(red, state);
+
+  digitalWrite(green, LOW);
+  digitalWrite(blue, LOW);
+}
+
+void RGB::Green(int state) {
+  digitalWrite(green, state);
+  digitalWrite(red, LOW);
+  digitalWrite(blue, LOW);
+}
+
+void RGB::Blue(int state) {
+  digitalWrite(blue, state);
+  digitalWrite(red, LOW);
+  digitalWrite(green, LOW);
+}
+
+
+
+
